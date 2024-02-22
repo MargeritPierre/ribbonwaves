@@ -8,6 +8,6 @@ The main MATLAB script [`demo.m`](demo.m) contains a minimum working example.
 
 ## An example of $k-\omega$ diagram
 <p align="center"> 
-  <img alt="Screenshot: Theta Scan Comparison" src="doc/kw_diagram_example.jpg" width="65%"/> 
+  <img alt="Screenshot: KW-diagram" src="doc/kw_diagram_example.jpg" width="65%"/> 
 </p>
 
