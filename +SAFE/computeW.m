@@ -8,12 +8,12 @@ fc = .5*sqrt(MAT.G/MAT.rho)/hmax ;
 sigma = -0.01*(2*pi*fc)^2 ; % eigenvalue shift
     
 % Build the interpolation matrices
-    MESH = SAFE.mesh.quad8(MESH) ; % serendipity element
-    MESH = SAFE.mesh.quadrature(MESH,'quad2') ; % generate a quadrature rule
-    MESH = SAFE.mesh.interpolation(MESH) ; % generate interpolation matrices
+    MESH = safe.mesh.quad8(MESH) ; % serendipity element
+    MESH = safe.mesh.quadrature(MESH,'quad2') ; % generate a quadrature rule
+    MESH = safe.mesh.interpolation(MESH) ; % generate interpolation matrices
                          
 % Build the SAFE Matrices
-    [K0,K1,K2,M] = SAFE.matrices(MESH,MAT) ;
+    [K0,K1,K2,M] = safe.matrices(MESH,MAT) ;
   
 % Zero-K modes
     [U0,w02] = eigs(K0,M,nModes,sigma) ;

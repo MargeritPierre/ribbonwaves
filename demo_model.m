@@ -1,4 +1,7 @@
-clc, clear all
+%% WAVENUMBER SPECTRUM OF A PRISMATIC WAVEGUIDE
+% Comparison between the SAFE method and the reduced ribbon model
+clc
+clear all
 
 % Ribbon geometry
     geo = [] ;
@@ -7,7 +10,7 @@ clc, clear all
     dx = min([geo.b geo.h])/4 ; % element size
 % Material
     mat = [] ;
-    mat.E = 70e3*(1+0.0000i) ; % Young modulus (MPa)
+    mat.E = 3.5e3*(1+0.0000i) ; % Young modulus (MPa)
     mat.nu = 30/100 ; % Poisson ratio
     mat.rho = 2700e-12 ; % material density (tons/mm^3)
     mat = material.coefficients(mat) ;
@@ -25,11 +28,11 @@ clc, clear all
 % Eigenvalue options
     nModes = 25 ;
 % Build the mesh
-    mesh = SAFE.mesh.gridmesh([geo.b geo.h],dx) ; % quad mesh
-    clf ; axis equal ; SAFE.mesh.plotmesh(mesh) ; 
+    mesh = safe.mesh.gridmesh([geo.b geo.h],dx) ; % quad mesh
+    clf ; axis equal ; safe.mesh.plotmesh(mesh) ; 
 % Compute the SAFE frequencies & modes
-    [Ur,wr] = SAFE.computeW(mesh,mat,kr,nModes) ;
-    [Ui,wi] = SAFE.computeW(mesh,mat,ki,nModes) ;
+    [Ur,wr] = safe.computeW(mesh,mat,kr,nModes) ;
+    [Ui,wi] = safe.computeW(mesh,mat,ki,nModes) ;
     Ks = repmat([real(kr(:));imag(ki(:))],[1 nModes]) ;
     Ws = [real(wr) ; real(wi)] ;
 % Display
@@ -42,7 +45,7 @@ clc, clear all
     plot(Ks(:),Ws(:),'.k','displayname','SAFE') ; 
 % Legends
     xlabel 'Wavenumber $k$ (rad/mm)' ; 
-    ylabel 'Frequency $f$ (Hz)'
+    ylabel 'Frequency $\omega$ (rad/s)'
     lgd = legend ; lgd.Location = 'southeast' ;
 % Rescaling
     obj = allchild(gca) ;
