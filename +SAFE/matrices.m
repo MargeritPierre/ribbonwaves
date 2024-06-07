@@ -1,5 +1,8 @@
 function [K0,K1,K2,M] = matrices(MESH,MAT)
 % BUILD THE SAFE MATRICES ASSOCIATED TO THE 1D Waveguide Porblem
+    
+% Build the interpolation matrices
+    MESH = safe.mesh.interpolation(MESH) ; % generate interpolation matrices
 
 % Kinematic relations: E = [E11;E22;E33;2E12;2E13;2E23] = (B0+k*Bk)*[u1;u2]
     [N,Dx,O] = deal(MESH.N,MESH.Dx,MESH.O) ;

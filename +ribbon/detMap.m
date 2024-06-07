@@ -1,7 +1,10 @@
 function [D,K,W,colors] = detMap(GEO,MAT,k,w,sz,colors)
 %% BUILD THE DETERMINANT MAP
 if nargin<5 ; sz = [] ; end % optionnal image size
-if nargin<6 ; colors = hsv(4)*8/10 + 1/10 ; end % colors associated to the different wave groups
+if nargin<6 % colors associated to the different wave groups
+    colors = get(0,'DefaultAxesColorOrder') ; % hsv(4)*8/10 + 1/10 ; 
+    colors = colors(1:4,:) ;
+end
 
 normalize = true ;
 filtSz = 5.*[1 1] ;
@@ -15,24 +18,18 @@ if ~isempty(sz)
 end
 
 % K-W coordinate matrices
-K = k(:).' + w(:)*0 ;
-W = k(:).'*0 + w(:) ;
+if isvector(k) && isvector(w) ; k = k(:).' ; w = w(:) ; end
+K = k + w*0 ;
+W = k*0 + w ;
 
 % Compute the determinant(s)
-[~,detAs,detAa,detBs,detBa] = ribbon.determinant( ...
-                                                    GEO.h ...
-                                                    ,GEO.b ...
-                                                    ,MAT.Q ...
-                                                    ,MAT.G ...
-                                                    ,MAT.rho ...
-                                                    ,W ...
-                                                    ,K ...
-                                                    ,normalize ) ;
+m = ribbon.model(GEO,MAT,K,W) ;
+Dips = m.Dips_n ; Dipa = m.Dipa_n ; Dops = m.Dops_n ; Dopa = m.Dopa_n ;
                             
 % Filter for display
 filtFun = @(D)D./medfilt2(abs(D),filtSz,'symmetric') ;
 % Concatenate filtered maps
-D = cat(4,filtFun(detAs),filtFun(detAa),filtFun(detBs),filtFun(detBa)) ;
+D = cat(4,filtFun(Dips),filtFun(Dipa),filtFun(Dops),filtFun(Dopa)) ;
 % Process
 D = abs(D) ;
 D = max(Dmin,min(D,Dmax)) ; % bound
