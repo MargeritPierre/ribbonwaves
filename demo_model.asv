@@ -11,7 +11,7 @@ clear all
     dx = min([geo.b geo.h])/5 ; % element size
 % Material
     mat = [] ;
-    mat.E = 70e3*(1+0.25i) ; % Young modulus (MPa)
+    mat.E = 70e3*(1+0.0i) ; % Young modulus (MPa)
     mat.nu = 30/100 ; % Poisson ratio
     mat.rho = 2700e-12 ; % material density (tons/mm^3)
     mat = material.coefficients(mat) ;

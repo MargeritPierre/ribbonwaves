@@ -16,7 +16,7 @@ elseif 0 % matching the first cutoff frequency
     xi = pi^2/12 ;
 else % matching the asymptotic wave velocity (rayleigh ?)
 % vR = vinf = sqrt(xi)*ct
-    xi = analytical.rayleigh(nu).^2 ;
+    xi = analytical.rayleigh(real(nu)).^2 ;
 end
 
 end

@@ -61,7 +61,7 @@ switch fun
         k = (1-1/NFFT)*pi/dx*linspace(0,1,NFFT) ;
 end
 
-% Display
+%% Display
     clf ; axis tight
     imagesc(k,f(indF)/1000,log10(abs(Fw(:,:))')) ; 
     colormap gray
