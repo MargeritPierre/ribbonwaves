@@ -1,4 +1,4 @@
-function [k,A,PHI] = esprit(W,fun,S)
+function [k,U,Sc] = esprit(W,fun,S)
 % PARAMETRIC ESTIMATION OF A COMBINATION OF EXP|COS FUNCTIONS
 % Signal model :
 %   (exp): s(x,y) = sum_r^R{ a_r(y) exp(1i*k_r*x) }
@@ -6,17 +6,15 @@ function [k,A,PHI] = esprit(W,fun,S)
 if nargin<2 ; fun = 'exp' ; end
 [m,R,nF] = size(W,1:3) ;
 
+% Retrieve eigenvalue information
+lmbda = sum(abs(W).^2,1) ;
+W = W./sqrt(lmbda) ; % renormalize eigenspace
+
 % Shifted subspaces
 switch fun
     case 'exp'
         Wup = W(1:end-1,:,:) ;
         Wdwn = W(2:end,:,:) ;
-%         Wup = permute(W(1:end-1,:,:),[2 4 3 1]) ; % [R 1 nF nX]
-%         Wdwn = permute(W(2:end,:,:),[4 2 3 1]) ; % [1 R nF nX]
-        % we = permute(W(end,:,:),[2 1 3]) ;
-        % iw2 = 1./(1-sum(abs(we).^2,2)) ;
-        % WW = sum(conj(Wup).*Wdwn,4) ;
-        % F = WW + (iw2.*we).*sum(we.*WW,1) ;
     case 'cos'
         Wup = W(2:end-1,:,:) ;
         Wdwn = .5*(W(1:end-2,:,:)+W(3:end,:,:)) ;
@@ -42,50 +40,39 @@ switch fun
         k = acos(z) ;
 end
 
-
-
-
-return
-%%
-
-nX = size(S,1) ;
-
-% Hankel-Toeplitz block matrix
-n = floor(nX/3) ; m = nX-2*n+1 ;
-i1 = (n+1:2*n)'+(0:m-1) ; % hankel
-i2 = flip(1:n)'+(0:m-1) ; % toeplitz
-X = reshape(S(i1,:) + S(i2,:),n,[]) ;
-
-% Signal subspace
-[W,lmbda] = eig(X*X','vector') ;
-[lmbda,is] = sort(lmbda,'descend') ;
-W = W(:,is(1:R)) ;
-%clf ; plot(log10(abs(lmbda)),'o')
-
-% Invariance
-Wup = W(2:end-1,:) ;
-Wdwn = .5*(W(1:end-2,:)+W(3:end,:)) ;
-F = Wup\Wdwn ;
-z = eig(F) ;
-
-% Wavenumber estimation
-k = acos(z) ;
+% amplitudes
+if nargin<3 || nargout<2 ; return ; end
 
 % Amplitude estimation
-% uses A.cos(kx+phi) = Up.exp(ikx)+Um.exp(-ikx)
-% with Up = A/2.exp(iphi) and Um = A/2.exp(-iphi)
-% model matrix
+% uses U.cos(kx+phi) = Up.exp(ikx)+Um.exp(-ikx)
+% with Up = U/2.exp(iphi) and Um = U/2.exp(-iphi)
+[nX,nY] = size(S,1:2) ;
+switch fun
+    case 'exp'
+        U = NaN([R nY nF]) ; % amplitudes
+        Sc = NaN([nX nY nF R]) ; % reconstructed signal model components (S=sum(Sm,4)) ;
+    case 'cos'
+        U = NaN([2*R nY nF]) ; % amplitudes
+        Sc = NaN([nX nY nF 2*R]) ; % reconstructed signal model components (S=sum(Sm,4)) ;
+end
 x = (0:nX-1)' ;
-V = exp(1i*[k;-k].'.*x) ;
+for ff = 1:nF
+% model matrix
+    switch fun
+        case 'exp'
+            V = exp(1i*k(:,ff).'.*x) ;
+        case 'cos'
+            V = exp(1i*[k(:,ff);-k(:,ff)].'.*x) ;
+    end
 % conditionning
-v0 = max(abs(V),[],1) ;
-V = V*diag(1./v0) ;
+    v0 = max(abs(V),[],1) ;
+    V = V*diag(1./v0) ;
 % estimation
-U = V\S ;
-U = diag(1./v0)*U ; 
-% amplitudes & phases
-Up = U(1:R,:) ; Um = U(R+1:end,:) ;
-PHI = -1i*log(Up./Um)/2 ; 
-A = Up.*exp(-1i*PHI) + Um.*exp(1i*PHI) ;
+    U(:,:,ff) = V\S(:,:,ff) ;
+% reconstruct signal model
+    if nargout>2 ; Sc(:,:,ff,:) = permute(V,[1 3 4 2]).*permute(U(:,:,ff),[3 2 4 1]) ; end
+% inverse conditionning
+    U(:,:,ff) = diag(1./v0)*U(:,:,ff) ; 
+end
 
 

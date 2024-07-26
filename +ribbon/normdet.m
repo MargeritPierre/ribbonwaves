@@ -1,4 +1,4 @@
-function [Dips,Dipa,Dops,Dopa] = normdet(GEO,MAT,K,W)
+function [Dips,Dipa,Dops,Dopa,D] = normdet(GEO,MAT,K,W)
 %ADIMDET Determinants of the ribbon model as a function of the adimensionnalized 
 % wavenumber K = .5*b*k
 % frequency W = .5*b*w/vt
@@ -23,11 +23,11 @@ end
 
 % IN-PLANE MOTION
 % Wavenumbers
-Kl2 = x*W2 - K2 ;
+Kl2 = x.*W2 - K2 ;
 Kt2 = W2 - K2 ;
 % Determinants
-Dips = 4*K2*Kl2*cos_sqrt(Kt2)*sinc_sqrt(Kl2) + (Kt2-K2)^2*cos_sqrt(Kl2)*sinc_sqrt(Kt2) ;
-Dipa = 4*K2*Kt2*cos_sqrt(Kl2)*sinc_sqrt(Kt2) + (Kt2-K2)^2*cos_sqrt(Kt2)*sinc_sqrt(Kl2) ;
+Dips = 4.*K2.*Kl2.*cos_sqrt(Kt2).*sinc_sqrt(Kl2) + (Kt2-K2).^2.*cos_sqrt(Kl2).*sinc_sqrt(Kt2) ;
+Dipa = 4.*K2.*Kt2.*cos_sqrt(Kl2).*sinc_sqrt(Kt2) + (Kt2-K2).^2.*cos_sqrt(Kt2).*sinc_sqrt(Kl2) ;
 
 % OUT-OF-PLANE MOTION
 % Wavenumbers
@@ -51,6 +51,9 @@ Dopa = 4.*x.*K2.*Kst2.*(Kb2-Ksa2).*sst.*cb.*csa + cst.*( ...
 % Normalize
 Dops = Dops./(Kst2+K2) ;
 Dopa = Dopa./(Kst2+K2) ;
+
+% Full determinant if needed
+if nargout>4 ; D = Dips.*Dipa.*Dops.*Dopa ; end
 
 end
 

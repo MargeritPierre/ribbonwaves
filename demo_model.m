@@ -7,11 +7,11 @@ clear all
 % Ribbon geometry
     geo = [] ;
     geo.h = 20/10 ; % height (mm)
-    geo.b = geo.h*3 ; % width (mm)
-    dx = min([geo.b geo.h])/5 ; % element size
+    geo.b = geo.h*10 ; % width (mm)
+    dx = min([geo.b geo.h])/5 ; % SAFE element size
 % Material
     mat = [] ;
-    mat.E = 70e3*(1+0.25i) ; % Young modulus (MPa)
+    mat.E = 70e3*(1+0.0i) ; % Young modulus (MPa)
     mat.nu = 30/100 ; % Poisson ratio
     mat.rho = 2700e-12 ; % material density (tons/mm^3)
     mat = material.coefficients(mat) ;
@@ -19,7 +19,7 @@ clear all
     fc = .5*sqrt(real(mat.G)/mat.rho)/geo.h ; % height-cutoff frequency
     kc = pi/geo.h ; % height-cutoff wavenumber
 % Wavenumber & frequency domains
-    kp = kc*[-.25i 0 1] ; % wavenumber keypoints
+    kp = kc*[-.25i 0 1.1] ; % wavenumber keypoints
     wp = [0 1.1]*2*pi*fc ; % frequency range
 % Computation points
     nPts = 100 ;

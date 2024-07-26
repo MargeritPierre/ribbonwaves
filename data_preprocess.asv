@@ -120,15 +120,15 @@ end
 %% Clean ESPRIT RESULTS    
     minRelativeEnergy = 1e-2 ; % minimum relative energy in the signal
     maxImagK = 1e0*pi/dx ; % maximum imaginary part of the wavenumbers
-    maxSpatialDecay = 1e0 ; % maximum allowed spatial decay
-    remPositiveDecay = true ; % remove wavenumbers with positive decay
+    maxSpatialDecay = 1e0 ;
+    remNegativeDecay = true ;
     
     sc.XData = real(ke(:)) ;
     valid = true(size(ke)) ;
     valid = valid & Eer>minRelativeEnergy ;
     valid = valid & abs(imag(ke))<maxImagK ;
     valid = valid & abs(imag(ke)./real(ke))<maxSpatialDecay ;
-    if remPositiveDecay ; valid = valid & imag(ke)./real(ke)<=0 ; end
+    if remNegativeDecay ; valid = valid & imag(ke)./real(ke)<=0 ; end
     sc.XData(~valid) = NaN ;
     
     Kv = ke(valid) ; Fv = fe(valid) ; Ev = Eer(valid) ;
@@ -144,11 +144,11 @@ end
 %% INITIAL COMPARISON WITH THE RIBBON MODEL
 % Geometry
     geo = [] ;
-    geo.h = 20/10 ; % height (mm)
-    geo.b = 195/10 ; % width (mm)
+    geo.h = 05/10 ; % height (mm)
+    geo.b = 40/10 ; % width (mm)
 % Material
     mat = [] ;
-    mat.E = 52e2*(1+0.04i) ; % Young modulus (MPa)
+    mat.E = 35e2*(1+0.04i) ; % Young modulus (MPa)
     mat.nu = 42/100 ; % Poisson ratio
     mat.rho = 1200e-12 ; % material density (tons/mm^3)
     mat = material.coefficients(mat) ;
@@ -167,18 +167,9 @@ end
     set(gca,'zlim',[-1 1]*.2*pi/geo.b,'zdir','reverse')
     legend('location','southeast')
     
-    
-    
-%% STOP HERE: WHAT FOLLOWS IS EXPERIMENTAL :)
-    
-    
-    
-    
-    
-    
 %% Find the closest roots from the HRWA results
     Dv = ribbondet(geo,mat,Kv,2*pi*Fv) ;
-    Kd = math.muller(@(K)ribbondet(geo,mat,K,2*pi*Fv,false),Kv,100) ;
+    Kd = math.muller(@(K)ribbondet(geo,mat,K,2*pi*Fv,false),Kv,7) ;
     %Kd = math.gradientdescent(@(K)ribbondet(geo,mat,K,2*pi*Fv),Kv,100) ;
     Dd = ribbondet(geo,mat,Kd,2*pi*Fv) ;
     vk = [Kv Kd Kd*NaN].' ; vf = [Fv Fv Fv*NaN]' ;
