@@ -26,6 +26,12 @@ for ff = 1:nF
     F(:,:,ff) = Wup(:,:,ff)\Wdwn(:,:,ff) ;
 end
 
+% Spectral matrices
+F = NaN(R,R,nF) ;
+for ff = 1:nF
+    F(:,:,ff) = Wup(:,:,ff)\Wdwn(:,:,ff) ;
+end
+
 % Pole matrices
 z = NaN(R,nF) ;
 for ff = 1:nF
@@ -75,4 +81,80 @@ for ff = 1:nF
     U(:,:,ff) = diag(1./v0)*U(:,:,ff) ; 
 end
 
+return ; 
 
+
+%% WHAT FOLLOWS IS EXPERIMENTAL !!
+    
+%% STABILIZATION CRITERION
+F = cell(R,1) ; % needed for ESTER criterion
+ERR = NaN(R,nF) ;
+for r = 1:R
+    F{r} = NaN(r,r,nF) ;
+    for ff = 1:nF
+        F{r}(:,:,ff) = Wup(:,1:r,ff)\Wdwn(:,1:r,ff) ;
+        ERR(r,ff) = norm(Wup(:,1:r,ff)*F{r}(:,:,ff)-Wdwn(:,1:r,ff),'fro') ;
+    end
+end
+
+% Pole matrices
+z = cell(R,1) ;
+for r = 1:R
+    z{r} = NaN(r,nF) ;
+    for ff = 1:nF
+        z{r}(:,ff) = eig(F{r}(:,:,ff)) ;
+    end
+end
+
+% wavenumbers
+switch fun
+    case 'exp'
+        k = cellfun(@(z)-1i*log(z),z,'uni',false) ;
+    case 'cos'
+        k = cellfun(@(z)acos(z),z,'uni',false) ;
+end
+
+%% STABILIZATION DIAGRAM
+ESTER = min(ERR,[],1)./ERR ;
+tolEster = 1/1 ;
+
+r = repmat(repelem(1:R,1:R)',[1 nF]) ;
+f = repmat(1:nF,[size(r,1) 1]) ;
+K = cat(1,k{:}) ;
+clf ; plot3(real(K(:)),f(:),r(:),'.','markersize',2) ;
+
+tol = 1/1*(pi/m) ; Nmin = 15 ;
+KU = {} ; FU = {} ; KUf = {} ;
+KE = {} ; FE = {} ;
+for ff = 1:nF
+    ku = K(:,ff) ;
+    [~,iall] = uniquetol([real(ku) imag(ku)],tol ...
+                            ,'datascale',1 ...
+                            ,'byrows',true ...
+                            ,'outputallindices',true ...
+                            ) ;
+    ku = cellfun(@(ii)median(ku(ii)),iall) ;
+    ku(cellfun(@numel,iall)<Nmin) = [] ;
+    KU{end+1} = ku ;
+    KUf{end+1} = ku ; %hrwa.lsfit(S(:,:,ff),ku,fun) ;
+    FU{end+1} = 0*ku + ff ;
+    
+    ester = ESTER(:,ff) ;
+    ru = find(ester>=tolEster,1,'last') ;
+    KE{end+1} = k{ru}(:,ff) ;
+    FE{end+1} = KE{end}*0+ff ;
+    
+end
+KU = cat(1,KU{:}) ; FU =  cat(1,FU{:}) ; KUf =  cat(1,KUf{:}) ;
+KE = cat(1,KE{:}) ; FE =  cat(1,FE{:}) ;
+plot(real(KU),FU,'.')
+plot(real(KE),FE,'.')
+set(gca,'zdir','reverse') ;
+%%
+cla ; %axis equal
+%plot3(real(K(:)),f(:)/nF,imag(K(:)),'.') ;
+plot3(real(KU(:)),FU(:)/nF,imag(KU(:)),'.') ;
+plot3(real(KUf(:)),FU(:)/nF,imag(KUf(:)),'.') ;
+plot3(real(KE(:)),FE(:)/nF,imag(KE(:)),'.')%'o','linewidth',.1,'markersize',4) ;
+set(gca,'zlim',.05*[-1 0])
+end

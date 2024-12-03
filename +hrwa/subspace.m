@@ -24,14 +24,33 @@ relTolL = 1e-12 ; sqrt(eps) ; % tolerance on eigenvalues
         case 'exp'
             if isempty(m) ; m = floor(q/2) ; end
             opCss = @(U,ii)math.expcovtimes(Fs(:,:,ii,:),U) ;
+%             opCss = @(U)math.expcovtimes(Fs,U) ;
         case 'cos'
             if isempty(m) ; m = floor(q/3) ; end
             opCss = @(U,ii)math.coscovtimes(Fs(:,:,ii,:),U) ;
+%             opCss = @(U)math.coscovtimes(Fs,U) ;
     end
     
 % Use the Lanczos algo
     n_k_p = [m r sz] ;
     [W,lmbda] = math.eigh(opCss,n_k_p,relTolL) ;
+    
+% Use bultin MATLAB EIGS
+%     W = NaN(m,r,prod(sz)) ; lmbda = NaN(r,1,prod(sz)) ;
+%     for ii = 1:prod(sz)
+%         Fsi = Fs(:,:,ii,:) ;
+%         switch fun
+%             case 'exp'
+%                 if isempty(m) ; m = floor(q/2) ; end
+%                 opCss = @(U)math.expcovtimes(Fsi,U) ;
+%             case 'cos'
+%                 if isempty(m) ; m = floor(q/3) ; end
+%                 opCss = @(U)math.coscovtimes(Fsi,U) ;
+%         end
+%         [W(:,:,ii),ll] = eigs(opCss,m,r,'lm') ;
+%         lmbda(:,1,ii) = diag(ll) ;
+%         disp("EIGS: " + string(ii) + "/" + string(prod(sz))) ;
+%     end
 
 end
 

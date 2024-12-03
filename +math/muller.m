@@ -1,12 +1,17 @@
-function xip1 = muller(fun,x0,maxIt)
+function xip1 = muller(fun,x0,maxIt,verbose)
 % MULLER Find the zeros of a function via the muller algorithm
 tolX = max(sqrt(eps),1e-6*abs(x0)) ;
 tolF = sqrt(eps) ; 
-if nargin<3 ; maxIt = 100 ; end
+if nargin<3 || isempty(maxIt) ; maxIt = 100 ; end
+if nargin<4 || isempty(verbose) ; verbose = false ; end
 
 % Initialization with tree points
-deltaX = 1e1*tolX ;
-xip1 = x0 ; xi = x0+deltaX ; xim1 = x0-deltaX ;
+if iscell(x0) % the tree first points are given
+    xip1 = x0{end} ; xi = x0{end-1} ; xim1 = x0{end-2} ;
+else % build points around (not aligned !)
+    deltaX = 1e1*tolX ;
+    xip1 = x0 ; xi = x0+deltaX ; xim1 = x0-3*(1+1i)*deltaX ;
+end
 fi = fun(xi) ; fim1 = fun(xim1) ;
 
 %tolF = max(tolF,1e-9*fi) ;
@@ -15,12 +20,9 @@ fi = fun(xi) ; fim1 = fun(xim1) ;
 it = 0 ; 
 converged = false(size(x0)) ;
 while it<maxIt
-% Convergence of the function ?
-    converged = converged | abs(fi)<tolF ; 
-    if all(converged) ; break ; end
 % Swap the points & functions
-    xim2 = xim1 ; xim1 = xi ; xi = xip1 ;
-    fim2 = fim1 ; fim1 = fi ; fi = fun(xi) ;
+    [xi,xim1,xim2] = deal(xip1,xi,xim1) ;
+    [fi,fim1,fim2] = deal(fun(xi),fi,fim1) ;
 % Updating scheme
     q = (xi-xim1)./(xim1-xim2) ;
     A = q.*fi - q.*(1+q).*fim1 + q.^2.*fim2 ;
@@ -41,14 +43,20 @@ while it<maxIt
     xip1(~converged) = xi(~converged) + dx(~converged) ;
 % Convergence of the point ?
     converged = converged | abs(dx)<tolX ; 
-    if all(converged) ; break ; end
+% Convergence of the function ?
+    converged = converged | abs(fi)<tolF ; 
 % iteration n°
     it = it+1 ;
-    disp("MULLER"...
-            + " | it: "+string(it)...
-            + " | converged: "+string(sum(converged(:)))+"/" + string(numel(x0)) ...
-            + " | max(dx)= "+string(max(abs(dx(~converged)))) ...
-        ) ;
+    if verbose
+        disp("MULLER"...
+                + " | it: "+string(it)...
+                + " | converged: "+string(sum(converged(:)))+"/" + string(numel(x0)) ...
+                ...+ " | max(dx) = "+string(max(abs(dx(~converged)))) ...
+            ) ;
+    end
+% Break the loop ?
+    if all(converged(:)) ; break ; end
 end
+
 end
 

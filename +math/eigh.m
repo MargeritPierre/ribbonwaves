@@ -23,7 +23,8 @@ else
 end
 
 % Starting lanczos vector
-v0 = randn(n,1,p) ;
+randStr = RandStream('dsfmt19937','Seed',0); % Set the rand stream to make algorithm reproducible
+v0 = randn(randStr,n,1,p) ;% ones(n,1,p) ;
 v0 = v0./sqrt(sum(abs(v0).^2,1)) ;
 
 % Initial lanczos tridiag
@@ -36,14 +37,15 @@ it = 0 ;
 dc = NaN(k0,1,p) ; Vc = NaN(n,k0,p) ; % converged basis
 while 1
     
-    % Ritz values of the current tridiagonal matrix
+    % Ritz values of the current almost-tridiagonal matrix
     switch eigMethod
         case 'eig' % Non-vectorized EIG
             Q = NaN(m,m,p_i) ; d = NaN(m,1,p_i) ;
             for pp=1:p_i
                 if any(isnan(a(:,:,pp)),'all') || any(isnan(b(:,:,pp)),'all') ; continue ; end
-                Tp = diag(a(:,:,pp),0) + diag(b(1:end-1,:,pp),1) + diag(b(1:end-1,:,pp),-1);
-                Tp(k+1,1:k) = c(1:k,:,pp)' ; Tp(1:k,k+1) = c(1:k,:,pp) ;
+                Tp = diag(a(:,:,pp),0) + diag(b(1:end-1,:,pp),1) + diag(b(1:end-1,:,pp),-1) ;
+                Tp(k+1,1:k) = Tp(k+1,1:k) + c(1:k,:,pp)' ; 
+                Tp(1:k,k+1) = Tp(1:k,k+1) + c(1:k,:,pp) ;
                 [Q(:,:,pp),d(:,:,pp)] = eig(Tp,'vector') ;
             end
         case 'tridiag-QL' % via the QL algorithm
@@ -57,7 +59,7 @@ while 1
                             + [zeros([k size(U,2:3)]);sum(c(1:k,:,:).*U(1:k,:,:),1);zeros([m-k-1 size(U,2:3)])] ...
                             + [c(1:k,:,:).*U(k+1,:,:);zeros([m-k size(U,2:3)])] ...
                             ;
-                vr = randn(m,1,p_i) ;
+                vr = randn(randStr,m,1,p_i) ;
                 vr = vr./sqrt(sum(abs(vr).^2,1)) ;
                 [at,bt,Vt] = math.lanczos(opT,m,vr) ;
             end
@@ -77,7 +79,7 @@ while 1
     c = permute(b(m,:,:).*Q(m,:,:),[2 1 3]) ;
 
     % Convergence tests
-    notConverged = abs(c(1:k,:,:))>tol.*abs(d(1:k,:,:)) ; % [k 1 p_i]
+    notConverged = abs(c(1:k,:,:))>=tol.*abs(d(1:k,:,:)) ; % [k 1 p_i]
     nConv = sum(~notConverged,1) ; % [1 1 p_i] ;
    
     % Backup converged values
